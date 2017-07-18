@@ -1,4 +1,7 @@
 class Api::V1::PinsController < ApplicationController
+  # User.find_by(email: request.headers['X-User-Email'], api_token: request.headers['X-Api-Token'] )
+  before_action :authenticate
+
   def index
     render json: Pin.all.order('created_at DESC')
   end
@@ -15,5 +18,16 @@ class Api::V1::PinsController < ApplicationController
   private
     def pin_params
       params.require(:pin).permit(:title, :image_url)
+    end
+
+    def authenticate
+      email = request.headers['X-User-Email']
+      api_token = request.headers['X-Api-Token']
+      @user = User.find_by(email: email, api_token: api_token)
+
+      unless @user
+        head status: :unauthorized
+        return false
+      end
     end
 end
